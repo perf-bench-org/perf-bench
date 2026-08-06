@@ -1,0 +1,40 @@
+# Нагрузочный тест. Сеть loadtest-net создаётся стеком metrics-storage/ и здесь подключается
+# как external — compose-проекты разные, depends_on между ними не работает.
+#
+#   docker compose run --rm -e LT_RUN_ID=confirm-180 loadtest
+#   docker compose run --rm -e LT_MODE=step -e LT_RUN_ID=step-search loadtest
+#   docker compose run --rm -e LT_MODE=report -e LT_RUN_ID=confirm-180 loadtest
+
+networks:
+  loadtest-net:
+    name: loadtest-net
+    external: true
+
+services:
+  loadtest:
+    build:
+      context: .
+      args:
+        # Зеркало Maven для сборки в закрытом контуре. Снаружи оставить пустым.
+        MAVEN_MIRROR_URL: "${MAVEN_MIRROR_URL:-}"
+    image: perf-bench/loadtest:1.0.0
+    networks: [loadtest-net]
+    cpus: "4"
+    mem_limit: 6g
+    environment:
+      # ActiveProcessorCount обязателен: иначе JVM определит число ядер по хосту, а не по
+      # cgroup-лимиту, и размеры пулов будут рассчитаны под чужую машину.
+      #
+      # -Xss256k обязателен: при 200 RPM и 300 с на итерацию пул составляет ~1250 потоков, и на
+      # дефолтном стеке 1 МБ они займут больше гигабайта только под стеки. Потоки заблокированы
+      # на сетевом IO, глубокой рекурсии в плане нет.
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:ActiveProcessorCount=4 -Xss256k"
+      TZ: Europe/Berlin
+    volumes:
+      - ./config:/config:ro
+      - ./data:/data:ro
+      - ./results:/results
+    profiles: ["tools"]
+    # restart-политики здесь НЕТ и быть не должно. Соседние сервисы стека долгоживущие и имеют
+    # restart: unless-stopped; дописать то же самое сюда по аналогии — естественная ошибка,
+    # превращающая штатное завершение прогона в бесконечный цикл прогонов по хосту с моделью.

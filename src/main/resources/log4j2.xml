@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Путь к файлу подставляет Logging.redirectTo(): до создания каталога прогона он неизвестен.
+  Значение по умолчанию нужно только на случай, если что-то дёрнет логгер раньше времени.
+-->
+<Configuration status="WARN">
+  <Properties>
+    <Property name="logFile">${sys:perfbench.logfile:-jmeter.log}</Property>
+  </Properties>
+
+  <Appenders>
+    <File name="RunFile" fileName="${logFile}" append="true">
+      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t] %c{1.} - %msg%n"/>
+    </File>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss} %-5level %msg%n"/>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+    <!-- Прогресс прогона должен быть виден в выводе контейнера, а не только в файле. -->
+    <Logger name="perfbench" level="info" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="RunFile"/>
+    </Logger>
+    <!-- Сводка JMeter раз в 30 с: единственный признак жизни в получасовом прогоне. -->
+    <Logger name="org.apache.jmeter.reporters.Summariser" level="info" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="RunFile"/>
+    </Logger>
+    <!-- Сообщения планировщика групп потоков: старт, конец по расписанию, останов. -->
+    <Logger name="org.apache.jmeter.threads" level="info" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="RunFile"/>
+    </Logger>
+
+    <Root level="info">
+      <AppenderRef ref="RunFile"/>
+    </Root>
+  </Loggers>
+</Configuration>

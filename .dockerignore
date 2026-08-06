@@ -1,0 +1,9 @@
+target/
+results/
+data/
+.git/
+.idea/
+*.iml
+.DS_Store
+metrics-storage/vm-data/
+metrics-storage/vmagent-data/

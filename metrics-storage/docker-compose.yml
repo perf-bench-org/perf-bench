@@ -1,0 +1,48 @@
+# Слой сбора и хранения метрик vLLM.
+#
+# Поднимается один раз и работает непрерывно, в том числе между прогонами: разрывы в рядах
+# сделают невозможным пересчёт отчётов за прошедшие окна.
+#
+#   docker compose up -d
+#
+# Сеть loadtest-net создаётся ЗДЕСЬ; остальные стеки подключают её как external.
+
+networks:
+  loadtest-net:
+    name: loadtest-net
+    driver: bridge
+
+services:
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.102.0
+    container_name: victoria-metrics
+    networks: [loadtest-net]
+    restart: unless-stopped
+    command:
+      - "--storageDataPath=/storage"
+      # Дефолтный retention (1 месяц) подчистил бы данные, нужные для пересчёта отчётов.
+      - "--retentionPeriod=100y"
+      - "--httpListenAddr=:8428"
+      # ВАЖНО: флага --influxListenAddr здесь быть не должно. Он включает отдельный TCP/UDP-листенер
+      # Influx line protocol и требует другого порта; тот же :8428, что и в --httpListenAddr, даёт
+      # конфликт и падение контейнера на старте. Push-приём не нужен вовсе — тест только читает.
+    volumes:
+      - ./vm-data:/storage
+    ports:
+      # Только на loopback: у VictoriaMetrics нет аутентификации. Внутри loadtest-net контейнеры
+      # ходят напрямую, публикация нужна лишь для ручной диагностики с самого хоста.
+      - "127.0.0.1:8428:8428"
+
+  vmagent:
+    image: victoriametrics/vmagent:v1.102.0
+    container_name: vmagent
+    depends_on: [victoria-metrics]
+    networks: [loadtest-net]
+    restart: unless-stopped
+    volumes:
+      - ./vmagent-config.yml:/etc/vmagent/config.yml:ro
+      - ./vmagent-data:/vmagentdata
+    command:
+      - "--promscrape.config=/etc/vmagent/config.yml"
+      - "--remoteWrite.url=http://victoria-metrics:8428/api/v1/write"
+      - "--remoteWrite.tmpDataPath=/vmagentdata"

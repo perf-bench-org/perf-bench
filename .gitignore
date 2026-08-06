@@ -1,0 +1,11 @@
+results/
+target/
+metrics-storage/vm-data/
+metrics-storage/vmagent-data/
+.DS_Store
+*.iml
+.idea/
+ARCHITECTURE.md
+IMPLEMENTATION.md
+metrics-storage-stage.md
+.claude
