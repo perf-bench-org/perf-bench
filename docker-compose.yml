@@ -19,6 +19,16 @@ services:
         MAVEN_MIRROR_URL: "${MAVEN_MIRROR_URL:-}"
     image: perf-bench/loadtest:1.0.0
     networks: [loadtest-net]
+    # Модель живёт на самом хосте — вне докера либо в чужой docker-сети с опубликованным портом.
+    # host-gateway резолвит имя vllm в адрес шлюза хоста, поэтому vllm:8000 остаётся валидным
+    # адресом и здесь, и в scrape-конфиге vmagent: менять больше нечего.
+    #
+    # Требования к модели: слушать не только 127.0.0.1 (для vLLM это --host 0.0.0.0) и не быть
+    # закрытой firewall'ом хоста от подсети docker-моста.
+    #
+    # Запись попадает в /etc/hosts контейнера и перебивает docker DNS. Если модель когда-нибудь
+    # переедет в loadtest-net под тем же именем, эту строку надо убрать, иначе имя продолжит
+    # указывать на хост.
     cpus: "4"
     mem_limit: 6g
     environment:
@@ -30,6 +40,8 @@ services:
       # на сетевом IO, глубокой рекурсии в плане нет.
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:ActiveProcessorCount=4 -Xss256k"
       TZ: Europe/Berlin
+    extra_hosts:
+      - "vllm:host-gateway"
     volumes:
       - ./config:/config:ro
       - ./data:/data:ro

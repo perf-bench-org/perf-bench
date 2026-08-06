@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Путь к файлу подставляет Logging.redirectTo(): до создания каталога прогона он неизвестен.
-  Значение по умолчанию нужно только на случай, если что-то дёрнет логгер раньше времени.
+
+  Значение по умолчанию нужно только на случай, если что-то дёрнет логгер раньше времени —
+  на практике это юнит-тесты, поднимающие JmeterEnvironment. Оно ведёт во временный каталог,
+  а не в текущий: относительный путь оставлял бы jmeter.log в корне репозитория при каждом
+  mvn test.
 -->
 <Configuration status="WARN">
   <Properties>
-    <Property name="logFile">${sys:perfbench.logfile:-jmeter.log}</Property>
+    <Property name="logFile">${sys:perfbench.logfile:-${sys:java.io.tmpdir}/perfbench-jmeter.log}</Property>
   </Properties>
 
   <Appenders>
