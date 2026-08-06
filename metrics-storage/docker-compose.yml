@@ -39,6 +39,12 @@ services:
     depends_on: [victoria-metrics]
     networks: [loadtest-net]
     restart: unless-stopped
+    # Модель на хосте, а не в этой сети: host-gateway резолвит имя vllm в адрес шлюза хоста.
+    # Значение должно совпадать с тем, что стоит у loadtest, иначе тест и скрейпер будут смотреть
+    # на разные цели. Preflight ловит такой рассинхрон за секунды: он проверяет, что серии vllm:*
+    # реально доехали до хранилища.
+    extra_hosts:
+      - "vllm:host-gateway"
     volumes:
       - ./vmagent-config.yml:/etc/vmagent/config.yml:ro
       - ./vmagent-data:/vmagentdata
