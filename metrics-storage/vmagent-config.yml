@@ -6,6 +6,10 @@
 #
 # Значение продублировано константой Report.SCRAPE_INTERVAL_SEC — оно печатается в отчёте рядом
 # с величинами, которые им ограничены. Меняя здесь, поменяйте и там.
+#
+# %{VLLM_HOST} и %{VLLM_PORT} разворачивает сам vmagent из переменных окружения; они приходят из
+# корневого .env через env_file в docker-compose.yml. Адрес здесь не пишется буквально намеренно:
+# тест берёт его оттуда же, и разойтись с ним больше нельзя.
 
 global:
   scrape_interval: 5s
@@ -14,4 +18,4 @@ scrape_configs:
   - job_name: vllm
     scrape_interval: 5s
     static_configs:
-      - targets: ["vllm:8000"]
+      - targets: ["%{VLLM_HOST}:%{VLLM_PORT}"]

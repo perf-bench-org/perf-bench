@@ -45,6 +45,12 @@ services:
     # реально доехали до хранилища.
     extra_hosts:
       - "vllm:host-gateway"
+    # Порт модели приходит из корневого .env — того же, что читает compose-проект теста.
+    # Внутри контейнера он нужен как переменная окружения: vmagent разворачивает %{VLLM_PORT}
+    # в vmagent-config.yml при чтении конфига. Если файла нет, compose падает на старте —
+    # это лучше, чем скрейпить порт по умолчанию и молча собирать пустые ряды.
+    env_file:
+      - ../.env
     volumes:
       - ./vmagent-config.yml:/etc/vmagent/config.yml:ro
       - ./vmagent-data:/vmagentdata

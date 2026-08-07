@@ -32,6 +32,13 @@ services:
     cpus: "4"
     mem_limit: 6g
     environment:
+      # Адрес модели задаётся ровно в одном месте — VLLM_HOST и VLLM_PORT в корневом .env.
+      # Отсюда он приходит сюда и в scrape-конфиг vmagent, поэтому тест и скрейпер не могут
+      # разойтись. Эти две переменные ПЕРЕБИВАЮТ target.url и vllm.baseUrl из
+      # config/test.properties всегда — таков контракт, значения в файле оставлены только
+      # как документация формата.
+      LT_TARGET_URL: "http://${VLLM_HOST:-vllm}:${VLLM_PORT:-8000}/v1/chat/completions"
+      LT_VLLM_BASEURL: "http://${VLLM_HOST:-vllm}:${VLLM_PORT:-8000}"
       # ActiveProcessorCount обязателен: иначе JVM определит число ядер по хосту, а не по
       # cgroup-лимиту, и размеры пулов будут рассчитаны под чужую машину.
       #
