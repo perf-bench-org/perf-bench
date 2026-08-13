@@ -36,7 +36,7 @@ public final class RequestBody {
    * запрос. Величина должна быть согласована с {@link Threads#ITERATION_SEC}: именно
    * {@code MAX_TOKENS} и определяет, сколько длится итерация.
    */
-  public static final int MAX_TOKENS = 1024;
+  public static final int MAX_TOKENS = 10000;
 
   /**
    * Отключает остановку по EOS.
@@ -44,7 +44,7 @@ public final class RequestBody {
    * <p>Принципиален: без него длина ответа плавает вместе с содержанием промпта, время итерации
    * плавает вслед за ней, и ступени становятся несравнимыми между собой.
    */
-  public static final boolean IGNORE_EOS = true;
+  public static final boolean IGNORE_EOS = false;
 
   public static final double TEMPERATURE = 0.0;
   public static final double TOP_P = 1.0;
