@@ -23,6 +23,7 @@ services:
       # Дефолтный retention (1 месяц) подчистил бы данные, нужные для пересчёта отчётов.
       - "--retentionPeriod=100y"
       - "--httpListenAddr=:8428"
+      - "-maxLabelsPerTimeseries=50"
       # ВАЖНО: флага --influxListenAddr здесь быть не должно. Он включает отдельный TCP/UDP-листенер
       # Influx line protocol и требует другого порта; тот же :8428, что и в --httpListenAddr, даёт
       # конфликт и падение контейнера на старте. Push-приём не нужен вовсе — тест только читает.
