@@ -111,7 +111,7 @@ public final class RequestBody {
     body.put("temperature", TEMPERATURE);
     body.put("top_p", TOP_P);
     body.put("stream", STREAM);
-    body.put("ignore_eos", IGNORE_EOS);
+    // body.put("ignore_eos", IGNORE_EOS);
 
     try {
       return MAPPER.writeValueAsString(body);
